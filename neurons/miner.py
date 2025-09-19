@@ -84,6 +84,7 @@ async def do_work(user_prompt: str,
                             debug=debug_prompts,
                             profile=profile)
     prompt = factory.generate_prompt()
+    bt.logging.trace(f"do_work Final Prompt: {prompt}")
     try:
         llm_response = LLMFactory.query_llm(server=server, 
                                             model=model, 
