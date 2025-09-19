@@ -11,7 +11,7 @@ from bitrecs.commerce.product import ProductFactory
 
 class PromptFactory:
 
-    SEASON = "spring/summer"
+    SEASON = "summer/autumn"
 
     ENGINE_MODE = "complimentary"  #similar, sequential
     
@@ -143,6 +143,7 @@ class PromptFactory:
     Leverage the complete information ecosystem - product catalog, user context, seasonal trends, and your role expertise as a {self.persona} - to deliver {self.engine_mode} recommendations.
     Apply comprehensive analysis using all available inputs: product attributes from the context, user cart history, seasonal relevance, pricing considerations and your persona's core values to create a cohesive recommendation set.
     Utilize your core_attributes to make the best recommendations.
+    Avoid the products that are less likely to be purchased in real life.
     Do **not** recommend products that are already in the cart.
 
     # INPUT
