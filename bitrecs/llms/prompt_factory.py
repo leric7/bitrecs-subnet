@@ -124,7 +124,7 @@ class PromptFactory:
     </core_attributes>
 
     # YOUR ROLE
-    - Recommend **{self.num_recs}** {self.engine_mode} products
+    - Recommend exactly **{self.num_recs}** {self.engine_mode} products
     - Drive higher add to cart, conversion rate, and average order value
     - Use catalog knowledge to identify the most relevant cross sell and up sell items
     - Avoid duplicates including product variants
@@ -135,7 +135,7 @@ class PromptFactory:
     Today's date: {today}
 
     # TASK
-    Given a product SKU <sku>{self.sku}</sku> select **{self.num_recs}** unique complementary products from the context.
+    Given a product SKU <sku>{self.sku}</sku> select exactly **{self.num_recs}** unique complementary products from the context.
     Analyze product names and prices carefully to make profitable, relevant recommendations.
     Leverage catalog structure, shopper intent, seasonal trends, and persona expertise to deliver a cohesive set.
     Never include the query SKU or any products already in the cart.
@@ -154,23 +154,40 @@ class PromptFactory:
     </context>
 
     # OUTPUT REQUIREMENTS
-    - Return ONLY a JSON array
-    - NO Python dict syntax (no single quotes)
+    - Return ONLY a valid JSON array
+    - No Python dict syntax and no single quotes
+    - Return exactly {self.num_recs} items (not more, not fewer)
     - Each item must include: "sku": "...", "name": "...", "price": "...", "reason": "..."
-    - Must return exactly {self.num_recs} items
     - Items must exist in context and not in the cart
     - No duplicates of any kind
     - Do not include the query SKU
     - Order by relevance and profitability, strongest recommendation first
     - Gender alignment is required (do not mix men’s and women’s products unless neutral)
     - Do not conflate categories (e.g. baby vs pet)
-    - Reason must be a single plain sentence with no punctuation or line breaks
+    - The reason must be one short plain sentence with no punctuation or line breaks
     - No explanations or text outside the JSON array
 
     # OUTPUT EXAMPLE
-    [{{"sku": "XYZ", "name": "Hunter Original Play Boot Chelsea", "price": "115", "reason": "User is viewing rainboots we recommend this alternative pair which is a best seller"}},
-    {{"sku": "ABC", "name": "Mens Lightweight Hooded Rain Jacket", "price": "149", "reason": "Since the shopper is viewing mens rainboots a mens raincoat is a good seasonal match"}},
-    {{"sku": "DEF", "name": "Davek Elite Umbrella", "price": "159", "reason": "An umbrella pairs well with the rain jacket and boosts utility"}}]
+    [
+    {{
+        "sku": "XYZ",
+        "name": "Hunter Original Play Boot Chelsea",
+        "price": "115",
+        "reason": "User is viewing rainboots we recommend this alternative pair which is a best seller"
+    }},
+    {{
+        "sku": "ABC",
+        "name": "Mens Lightweight Hooded Rain Jacket",
+        "price": "149",
+        "reason": "Since the shopper is viewing mens rainboots a mens raincoat is a good seasonal match"
+    }},
+    {{
+        "sku": "DEF",
+        "name": "Davek Elite Umbrella",
+        "price": "159",
+        "reason": "An umbrella pairs well with the rain jacket and boosts utility"
+    }}
+    ]
     """
 
         prompt_length = len(prompt)
