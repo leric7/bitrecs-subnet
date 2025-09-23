@@ -11,7 +11,7 @@ from bitrecs.commerce.product import ProductFactory
 
 class PromptFactory:
 
-    SEASON = "spring/summer"
+    SEASON = "summer/autumn"
 
     ENGINE_MODE = "complimentary"  #similar, sequential
     
@@ -112,7 +112,7 @@ class PromptFactory:
     A shopper is viewing a product with SKU <sku>{self.sku}</sku> named <sku_info>{self.sku_info}</sku_info> on your e-commerce store.
     They are looking for {self.engine_mode} products to add to their cart.
     You will build a recommendation set with no duplicates based on the provided context and your persona qualities.
-        
+
     # YOUR PERSONA
     <persona>{self.persona}</persona>
 
@@ -123,27 +123,22 @@ class PromptFactory:
     Core values: {', '.join(persona_data['priorities'])}
     </core_attributes>
 
-    # YOUR ROLE:
-    - Recommend **{self.num_recs}** {self.engine_mode} products (A -> X,Y,Z)
-    - Increase average order value and conversion rate
-    - Use deep product catalog knowledge
-    - Understand product attributes and revenue impact
-    - Avoid variant duplicates (same product in different colors/sizes)
-    - Consider seasonal relevance
+    # YOUR ROLE
+    - Recommend exactly **{self.num_recs}** {self.engine_mode} products
+    - Drive higher add to cart, conversion rate, and average order value
+    - Use catalog knowledge to identify the most relevant cross sell and up sell items
+    - Avoid duplicates including product variants
+    - Consider seasonal relevance and profitability
+    - Match product gender correctly
 
     Current season: <season>{season}</season>
-    Today's date: {today} 
+    Today's date: {today}
 
     # TASK
-    Given a product SKU <sku>{self.sku}</sku> select **{self.num_recs}** complementary unique products from the context.
-    Use your persona qualities to THINK about which products to select, but return ONLY a JSON array.
-    Evaluate each product name and price fields before making your recommendations.
-    The name field is the most important attribute followed by price.
-    The product name will often contain important information like which category it belongs to, sometimes denoted by | characters indicating the category hierarchy.    
-    Leverage the complete information ecosystem - product catalog, user context, seasonal trends, and your role expertise as a {self.persona} - to deliver {self.engine_mode} recommendations.
-    Apply comprehensive analysis using all available inputs: product attributes from the context, user cart history, seasonal relevance, pricing considerations and your persona's core values to create a cohesive recommendation set.
-    Utilize your core_attributes to make the best recommendations.
-    Do **not** recommend products that are already in the cart.
+    Given a product SKU <sku>{self.sku}</sku> select exactly **{self.num_recs}** unique complementary products from the context.
+    Analyze product names and prices carefully to make profitable, relevant recommendations.
+    Leverage catalog structure, shopper intent, seasonal trends, and persona expertise to deliver a cohesive set.
+    Never include the query SKU or any products already in the cart.
 
     # INPUT
     Query SKU: <sku>{self.sku}</sku><sku_info>{self.sku_info}</sku_info>
@@ -156,33 +151,44 @@ class PromptFactory:
     Available products:
     <context>
     {self.context}
-    </context>   
+    </context>
 
     # OUTPUT REQUIREMENTS
-    - Return ONLY a JSON array.
-    - NO Python dictionary syntax (no single quotes).
-    - Each item must be valid JSON with: "sku": "...", "name": "...", "price": "...", "reason": "..."
-    - Each item must have: sku, name, price and reason.
-    - If the Query SKU product is gendered consider recommending products that match the gender of the Query SKU.
-    - If the Query SKU is gender neutral recommend more gender neutral products.
-    - Never mix gendered products in the recommendation set for example if the user is looking at womans shoes, do not recommend mens shoes.
-    - Do not conflate pet products with baby products, they are different categories.
-    - Must return exactly {self.num_recs} items.
-    - Return items MUST exist in context.
-    - Return items must NOT exist in the cart.
-    - No duplicates. *Very important* The final result MUST be a unique set of products from the context.
-    - Product matching Query SKU must not be included in the set of recommendations.
-    - Return items should be ordered by relevance/profitability, the first being your top recommendation.
-    - Each item must have a reason explaining why the product is a good recommendation for the related Query SKU.
-    - The reason should be a single succinct sentence consisting of plain words without punctuation, or line breaks.
-    - You will be graded on your reason so make sure to provide a good reason for each recommendation which is relevant to the Query SKU.    
-    - No explanations or text outside the JSON array.
+    - Return ONLY a valid JSON array
+    - No Python dict syntax and no single quotes
+    - Return exactly {self.num_recs} items (not more, not fewer)
+    - Each item must include: "sku": "...", "name": "...", "price": "...", "reason": "..."
+    - Items must exist in context and not in the cart
+    - No duplicates of any kind
+    - Do not include the query SKU
+    - Order by relevance and profitability, strongest recommendation first
+    - Gender alignment is required (do not mix men’s and women’s products unless neutral)
+    - Do not conflate categories (e.g. baby vs pet)
+    - The reason must be one short plain sentence with no punctuation or line breaks
+    - No explanations or text outside the JSON array
 
-    Example format:
-    
-    [{{"sku": "XYZ", "name": "Hunter Original Play Boot Chelsea", "price": "115", "reason": "User is viewing rainboots, we recommend this alternative pair of rainboots which is our best seller"}},
-        {{"sku": "ABC", "name": "Men's Lightweight Hooded Rain Jacket", "price": "149", "reason": "Since the user is looking at mens rainboots, given the season a mens raincoat should be a good fit"}},
-        {{"sku": "DEF", "name": "Davek Elite Umbrella", "price": "159", "reason": "An Umbrella would go nicely with ABC Lightweight Hooded Rain Jacket and is often paired with it"}}]"""
+    # OUTPUT EXAMPLE
+    [
+    {{
+        "sku": "XYZ",
+        "name": "Hunter Original Play Boot Chelsea",
+        "price": "115",
+        "reason": "User is viewing rainboots we recommend this alternative pair which is a best seller"
+    }},
+    {{
+        "sku": "ABC",
+        "name": "Mens Lightweight Hooded Rain Jacket",
+        "price": "149",
+        "reason": "Since the shopper is viewing mens rainboots a mens raincoat is a good seasonal match"
+    }},
+    {{
+        "sku": "DEF",
+        "name": "Davek Elite Umbrella",
+        "price": "159",
+        "reason": "An umbrella pairs well with the rain jacket and boosts utility"
+    }}
+    ]
+    """
 
         prompt_length = len(prompt)
         bt.logging.info(f"LLM QUERY Prompt length: {prompt_length}")
